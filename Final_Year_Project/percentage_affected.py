@@ -1,12 +1,16 @@
 import cv2
 import numpy as np
+from PIL import Image
+from keras_preprocessing import image
 from flask import Flask, jsonify, request
 
 app = Flask(__name__)
 @app.route('/predict', methods=['POST'])
 def predict():
     file = request.files['image']
-    img = cv2.imread(file)
+    filename = file.filename
+    file.save(filename)
+    img = cv2.imread(filename)
     gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     ret, thresh_img = cv2.threshold(gray_img, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
@@ -24,7 +28,8 @@ def predict():
     lung_pixels = np.sum(markers == 2)
     total_pixels = np.prod(markers.shape)
     lung_percentage = lung_pixels / total_pixels * 100
+    output=str(lung_percentage)
     print('Percentage of lungs affected: {:.2f}%'.format(lung_percentage))
-    return lung percentage
+    return output
 if __name__ == '__main__':
     app.run(debug=True)
